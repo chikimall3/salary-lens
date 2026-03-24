@@ -1,4 +1,6 @@
-import { MSG } from '../shared/constants.js';
+/* Content scripts cannot use ES module imports in Manifest V3 */
+const MSG_FETCH_SALARY = 'FETCH_SALARY';
+const MSG_SAVE_OFFER = 'SAVE_OFFER';
 
 /**
  * Extract job title from Indeed job detail page.
@@ -238,7 +240,7 @@ function injectWidget(data) {
     saveBtn.addEventListener('click', () => {
       const annual = normalizeToAnnual(listedSalary);
       chrome.runtime.sendMessage({
-        type: MSG.SAVE_OFFER,
+        type: MSG_SAVE_OFFER,
         offer: {
           jobTitle: data.jobTitle,
           company: data.company,
@@ -331,7 +333,7 @@ async function init() {
 
   try {
     const response = await chrome.runtime.sendMessage({
-      type: MSG.FETCH_SALARY,
+      type: MSG_FETCH_SALARY,
       jobTitle,
       location,
     });
@@ -360,24 +362,26 @@ if (document.readyState === 'loading') {
 }
 
 // Re-run on URL change (Indeed uses client-side navigation)
-let lastUrl = location.href;
+let lastUrl = window.location.href;
 const observer = new MutationObserver(() => {
-  if (location.href !== lastUrl) {
-    lastUrl = location.href;
+  if (window.location.href !== lastUrl) {
+    lastUrl = window.location.href;
     setTimeout(init, 1000);
   }
 });
 observer.observe(document.body, { childList: true, subtree: true });
 
-// Export for testing
-export {
-  extractJobTitle,
-  extractCompany,
-  extractLocation,
-  extractListedSalary,
-  normalizeToAnnual,
-  calcMarketPosition,
-  formatCurrency,
-  getPositionLabel,
-  init,
-};
+// Expose for testing (globalThis is safe — won't collide in Chrome extension context)
+if (typeof globalThis._salaryLensTest === 'undefined') {
+  globalThis._salaryLensTest = {
+    extractJobTitle,
+    extractCompany,
+    extractLocation,
+    extractListedSalary,
+    normalizeToAnnual,
+    calcMarketPosition,
+    formatCurrency,
+    getPositionLabel,
+    init,
+  };
+}

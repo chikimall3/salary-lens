@@ -60,9 +60,9 @@ function todayStr() {
 function mockBlsSuccess(socCode, wages = {}) {
   const defaults = { p10: 60000, p25: 75000, p50: 95000, p75: 120000, p90: 150000 };
   const w = { ...defaults, ...wages };
-  const dtMap = { p10: '07', p25: '08', p50: '09', p75: '10', p90: '11' };
+  const dtMap = { p10: '11', p25: '12', p50: '13', p75: '14', p90: '15' };
   const series = Object.entries(dtMap).map(([key, dt]) => ({
-    seriesID: `OEUM0000000000000${socCode}${dt}`,
+    seriesID: `OEUN0000000000000${socCode}${dt}`,
     data: [{ value: String(w[key]) }],
   }));
   return {
@@ -230,11 +230,11 @@ describe('BLS API', () => {
         status: 'REQUEST_SUCCEEDED',
         Results: {
           series: [
-            { seriesID: 'OEUM000000000000029114107', data: [{ value: '-' }] },
-            { seriesID: 'OEUM000000000000029114108', data: [{ value: '-' }] },
-            { seriesID: 'OEUM000000000000029114109', data: [{ value: '-' }] },
-            { seriesID: 'OEUM000000000000029114110', data: [{ value: '-' }] },
-            { seriesID: 'OEUM000000000000029114111', data: [{ value: '-' }] },
+            { seriesID: 'OEUN000000000000029114111', data: [{ value: '-' }] },
+            { seriesID: 'OEUN000000000000029114112', data: [{ value: '-' }] },
+            { seriesID: 'OEUN000000000000029114113', data: [{ value: '-' }] },
+            { seriesID: 'OEUN000000000000029114114', data: [{ value: '-' }] },
+            { seriesID: 'OEUN000000000000029114115', data: [{ value: '-' }] },
           ],
         },
       }),

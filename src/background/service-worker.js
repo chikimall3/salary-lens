@@ -75,26 +75,27 @@ const SOC_FALLBACK = { socCode: '150000', occupation: 'Computer Occupations, All
  * @see https://www.bls.gov/oes/oes_ques.htm
  */
 const BLS_DATA_TYPES = {
-  p10: '07',
-  p25: '08',
-  p50: '09',
-  p75: '10',
-  p90: '11',
+  p10: '11',
+  p25: '12',
+  p50: '13',
+  p75: '14',
+  p90: '15',
 };
 
 /**
  * Build a BLS OEWS series ID for national data.
  *
- * Format: OEUM{areaCode}{industryCode}{socCode}{dataType}
+ * Format: OEUN{areaCode}{industryCode}{socCode}{dataType}
+ *   N           = National area type
  *   areaCode    = 0000000  (national)
  *   industryCode= 000000   (cross-industry)
  *
  * @param {string} socCode  - 6-digit SOC code (no hyphen, e.g. "151252")
- * @param {string} dataType - 2-digit data type code
+ * @param {string} dataType - 2-digit data type code (11-15 for annual percentiles)
  * @returns {string} BLS series ID
  */
 function buildBlsSeriesId(socCode, dataType) {
-  return `OEUM0000000000000${socCode}${dataType}`;
+  return `OEUN0000000000000${socCode}${dataType}`;
 }
 
 // ---------------------------------------------------------------------------

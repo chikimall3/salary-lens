@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=400">
+  <title>SalaryLens</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup">
+    <header class="header">
+      <h1 class="logo">SalaryLens</h1>
+      <span class="tagline">Know Your Worth</span>
+    </header>
+
+    <section id="status" class="status">
+      <div class="status-row">
+        <span>Free lookups today</span>
+        <span id="lookups-remaining">--/3</span>
+      </div>
+    </section>
+
+    <section id="offers-section" class="offers-section">
+      <h2>Saved Offers <span id="offer-count" class="badge">0</span></h2>
+      <div id="offers-list" class="offers-list">
+        <p class="empty-state">No saved offers yet. Visit an Indeed job page to start.</p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <a href="#" id="options-link">Settings</a>
+      <span class="version">v0.1.0</span>
+    </footer>
+  </div>
+  <script src="popup.js" type="module"></script>
+</body>
+</html>

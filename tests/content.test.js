@@ -29,7 +29,7 @@ function clearDOM() {
 }
 
 // ---------------------------------------------------------------------------
-// Module import (dynamic — ES module with side-effects we need to suppress)
+// Load the content script (classic script — uses globalThis._salaryLensTest)
 // ---------------------------------------------------------------------------
 
 let extractJobTitle,
@@ -42,14 +42,14 @@ let extractJobTitle,
   getPositionLabel;
 
 beforeAll(async () => {
-  // The module runs init() as a side-effect. We suppress chrome.runtime.sendMessage
-  // and the MutationObserver so the import doesn't throw.
   globalThis.MutationObserver = class {
     observe() {}
     disconnect() {}
   };
 
-  const mod = await import('../src/content/indeed.js');
+  // Load as classic script via dynamic import (still works for non-module files in Jest ESM mode)
+  await import('../src/content/indeed.js');
+  const mod = globalThis._salaryLensTest;
   extractJobTitle = mod.extractJobTitle;
   extractCompany = mod.extractCompany;
   extractLocation = mod.extractLocation;
