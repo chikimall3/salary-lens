@@ -1,9 +1,5 @@
 node_modules/
+coverage/
+*.log
 .env
-*.pem
-*.key
-.DS_Store
-Thumbs.db
-*.zip
-dist/
 conversation-*.txt

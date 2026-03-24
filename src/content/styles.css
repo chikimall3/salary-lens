@@ -1,0 +1,193 @@
+#salary-lens-widget {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+  background: #ffffff;
+  border: 1px solid #e4e5e7;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 12px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-size: 14px;
+  line-height: 1.5;
+  color: #2d2d2d;
+  max-width: 600px;
+}
+
+/* Header */
+.sl-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.sl-logo {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1a73e8;
+  letter-spacing: -0.3px;
+}
+
+.sl-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #6f6f6f;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.sl-close:hover {
+  color: #2d2d2d;
+}
+
+/* Position indicator */
+.sl-position {
+  margin-bottom: 12px;
+}
+
+.sl-position-label {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.sl-position-detail {
+  font-size: 13px;
+  color: #6f6f6f;
+}
+
+.sl-percentile {
+  color: #9e9e9e;
+  margin-left: 4px;
+}
+
+/* Market position bar */
+.sl-bar-container {
+  margin-bottom: 16px;
+}
+
+.sl-bar {
+  position: relative;
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: visible;
+}
+
+.sl-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.sl-bar-marker {
+  position: absolute;
+  top: -4px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border: 3px solid currentColor;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.sl-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #9e9e9e;
+  margin-top: 4px;
+}
+
+/* Market data table */
+.sl-market-data {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 12px;
+}
+
+.sl-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.sl-row span:first-child {
+  color: #6f6f6f;
+}
+
+.sl-row span:last-child {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.sl-row-median {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin: 2px -8px;
+  font-weight: 600;
+}
+
+.sl-row-median span:first-child {
+  color: #2d2d2d;
+}
+
+/* Footer */
+.sl-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.sl-source {
+  font-size: 11px;
+  color: #9e9e9e;
+}
+
+.sl-save-btn {
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.sl-save-btn:hover {
+  background: #1557b0;
+}
+
+.sl-save-btn:disabled {
+  background: #28a745;
+  cursor: default;
+}
+
+/* Loading state */
+.sl-loading {
+  text-align: center;
+  padding: 20px;
+  color: #6f6f6f;
+  animation: sl-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes sl-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Error state */
+.sl-error {
+  text-align: center;
+  padding: 16px;
+  color: #dc3545;
+  font-size: 13px;
+}
