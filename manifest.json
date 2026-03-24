@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "SalaryLens — Know Your Worth",
+  "version": "0.1.0",
+  "description": "See real salary data on job listings. Know if an offer is fair before you apply.",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.bls.gov/*",
+    "https://api.careeronestop.org/*"
+  ],
+  "background": {
+    "service_worker": "src/background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.indeed.com/*"],
+      "js": ["src/content/indeed.js"],
+      "css": ["src/content/styles.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
+  "options_page": "src/options/options.html"
+}
