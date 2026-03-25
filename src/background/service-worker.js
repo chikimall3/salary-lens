@@ -12,6 +12,7 @@ import { MSG, STORAGE, FREE_TIER, API } from '../shared/constants.js';
 import { resolveSoc } from '../shared/soc-codes.js';
 import { resolveMsa, buildAreaSeriesId } from '../shared/msa-codes.js';
 import { getRPP, adjustSalary, costLevel } from '../shared/col-index.js';
+import { lookupWageWithFallback } from '../shared/wage-lookup.js';
 import ExtPay from '../shared/ExtPay.module.js';
 
 const extpay = ExtPay('salary-lens');
@@ -428,45 +429,27 @@ async function fetchSalaryData(jobTitle, location) {
   const { socCode, occupation } = resolveSoc(jobTitle);
   const msaResult = resolveMsa(location);
 
-  // --- Check cache first ---
-  const cacheId = `${socCode}|${msaResult.msaCode}|${msaResult.areaType}`;
-  const cached = await getCachedResult(cacheId);
-  if (cached) {
-    console.log('[SalaryLens] Cache hit:', cacheId);
-    return enrichWithCOL(cached, location);
+  // --- Attempt 1: Local bundled data (no API call, no rate limit) ---
+  const localResult = await lookupWageWithFallback(socCode, msaResult);
+  if (localResult) {
+    console.log('[SalaryLens] Local data hit:', socCode, msaResult.areaType);
+    return enrichWithCOL(localResult, location);
   }
 
-  // --- Attempt 1: BLS metro area data ---
-  const blsMetro = msaResult.areaType !== 'national'
+  // --- Attempt 2: BLS API (fallback for rare combinations not in bundled data) ---
+  const blsResult = msaResult.areaType !== 'national'
     ? await fetchFromBls(socCode, occupation, msaResult)
     : null;
-  if (blsMetro) {
-    await setCachedResult(cacheId, blsMetro);
-    return enrichWithCOL(blsMetro, location);
-  }
-
-  // --- Attempt 2: BLS national fallback ---
-  const nationalCacheId = `${socCode}|0000000|national`;
-  const nationalCached = await getCachedResult(nationalCacheId);
-  if (nationalCached) {
-    console.log('[SalaryLens] National cache hit:', nationalCacheId);
-    return enrichWithCOL(nationalCached, location);
-  }
+  if (blsResult) return enrichWithCOL(blsResult, location);
 
   const blsNational = await fetchFromBls(socCode, occupation, null);
-  if (blsNational) {
-    await setCachedResult(nationalCacheId, blsNational);
-    return enrichWithCOL(blsNational, location);
-  }
+  if (blsNational) return enrichWithCOL(blsNational, location);
 
-  // --- Attempt 3: CareerOneStop ---
+  // --- Attempt 3: CareerOneStop (last resort) ---
   const cosResult = await fetchFromCareerOneStop(socCode, occupation, location);
-  if (cosResult) {
-    await setCachedResult(cacheId, cosResult);
-    return enrichWithCOL(cosResult, location);
-  }
+  if (cosResult) return enrichWithCOL(cosResult, location);
 
-  // --- Both failed ---
+  // --- All sources failed ---
   return {
     error:
       'Unable to retrieve salary data at this time. ' +
