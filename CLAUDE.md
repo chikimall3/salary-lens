@@ -52,12 +52,20 @@ salary-lens/
   tests/             # Tests
 ```
 
+## Manifest V3 Constraints
+- **Content scripts**: Classic scripts ONLY. No ES module imports (`import`/`export`). Use inline constants or IIFE patterns. For testing, expose via `globalThis._salaryLensTest`.
+- **Service worker**: ES modules OK (`"type": "module"` in manifest).
+- **chrome:// pages**: Cannot be automated or accessed programmatically.
+- **External API calls**: Must be from service worker (not content script). Requires `host_permissions`.
+- **BLS API series ID format**: `OEUN` + area(7) + industry(6) + SOC(6) + dataType(2). National area type = `N`. Annual wage percentiles = data types 11-15.
+
 ## Coding Conventions
 - Vanilla JS (no framework for extension — keep it lightweight)
-- ES modules where possible
+- ES modules for service worker and popup/options only; classic scripts for content scripts
 - JSDoc comments for public functions
 - Error handling: fail gracefully, show user-friendly messages
 - All strings in English
+- Always verify external API responses with curl before implementing client code
 
 ## API Notes
 - BLS API: Free, 500 queries/day with registration key. OEWS data for occupation × area.
