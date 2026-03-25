@@ -375,6 +375,20 @@ body {
 }
 
 .feature-icon { font-size: 32px; margin-bottom: 12px; }
+
+.feature-icon-text {
+  width: 48px;
+  height: 48px;
+  line-height: 48px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 800;
+  background: var(--blue-light);
+  color: var(--blue);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+}
 .feature-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
 .feature-card p { font-size: 14px; color: var(--gray-600); line-height: 1.6; }
 
@@ -447,6 +461,10 @@ body {
   margin: 0 auto;
 }
 
+.pricing-cards.three-col {
+  max-width: 900px;
+}
+
 .pricing-card {
   flex: 1;
   background: #fff;
@@ -473,6 +491,11 @@ body {
   font-weight: 700;
   padding: 4px 16px;
   border-radius: 12px;
+  white-space: nowrap;
+}
+
+.pricing-badge.badge-alt {
+  background: var(--green);
 }
 
 .pricing-tier {
