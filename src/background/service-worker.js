@@ -9,66 +9,13 @@
  */
 
 import { MSG, STORAGE, FREE_TIER, API } from '../shared/constants.js';
+import { resolveSoc } from '../shared/soc-codes.js';
+import { resolveMsa, buildAreaSeriesId } from '../shared/msa-codes.js';
+import { getRPP, adjustSalary, costLevel } from '../shared/col-index.js';
 import ExtPay from '../shared/ExtPay.module.js';
 
 const extpay = ExtPay('salary-lens');
 extpay.startBackground();
-
-// ---------------------------------------------------------------------------
-// SOC Code Lookup Table (~30 common job titles)
-// Keys are normalized to lowercase for case-insensitive matching.
-// Values are 6-digit SOC codes (no hyphen) used in BLS series IDs.
-// ---------------------------------------------------------------------------
-
-/** @type {Record<string, { socCode: string, occupation: string }>} */
-const SOC_TABLE = {
-  // Software & Tech
-  'software engineer':            { socCode: '151252', occupation: 'Software Developers' },
-  'software developer':           { socCode: '151252', occupation: 'Software Developers' },
-  'frontend engineer':            { socCode: '151254', occupation: 'Web Developers' },
-  'frontend developer':           { socCode: '151254', occupation: 'Web Developers' },
-  'backend engineer':             { socCode: '151252', occupation: 'Software Developers' },
-  'full stack engineer':          { socCode: '151252', occupation: 'Software Developers' },
-  'full stack developer':         { socCode: '151252', occupation: 'Software Developers' },
-  'data scientist':               { socCode: '152051', occupation: 'Data Scientists' },
-  'data analyst':                 { socCode: '152041', occupation: 'Data Analysts' },
-  'data engineer':                { socCode: '151242', occupation: 'Database Administrators and Architects' },
-  'machine learning engineer':    { socCode: '151252', occupation: 'Software Developers' },
-  'devops engineer':              { socCode: '151244', occupation: 'Network and Computer Systems Administrators' },
-  'cloud engineer':               { socCode: '151244', occupation: 'Network and Computer Systems Administrators' },
-  'systems administrator':        { socCode: '151244', occupation: 'Network and Computer Systems Administrators' },
-  'it manager':                   { socCode: '113021', occupation: 'Computer and Information Systems Managers' },
-  'product manager':              { socCode: '113021', occupation: 'Computer and Information Systems Managers' },
-  'ux designer':                  { socCode: '271024', occupation: 'Graphic Designers' },
-  'ui designer':                  { socCode: '271024', occupation: 'Graphic Designers' },
-  // Finance & Business
-  'accountant':                   { socCode: '132011', occupation: 'Accountants and Auditors' },
-  'financial analyst':            { socCode: '132051', occupation: 'Financial and Investment Analysts' },
-  'business analyst':             { socCode: '131111', occupation: 'Management Analysts' },
-  'management consultant':        { socCode: '131111', occupation: 'Management Analysts' },
-  'marketing manager':            { socCode: '112021', occupation: 'Marketing Managers' },
-  'sales manager':                { socCode: '112022', occupation: 'Sales Managers' },
-  'human resources manager':      { socCode: '112021', occupation: 'Human Resources Managers' },
-  'hr manager':                   { socCode: '112021', occupation: 'Human Resources Managers' },
-  // Healthcare
-  'nurse':                        { socCode: '291141', occupation: 'Registered Nurses' },
-  'registered nurse':             { socCode: '291141', occupation: 'Registered Nurses' },
-  'physician':                    { socCode: '291215', occupation: 'Family Medicine Physicians' },
-  'doctor':                       { socCode: '291215', occupation: 'Family Medicine Physicians' },
-  'pharmacist':                   { socCode: '291051', occupation: 'Pharmacists' },
-  // Education
-  'teacher':                      { socCode: '252021', occupation: 'Elementary School Teachers' },
-  'elementary school teacher':    { socCode: '252021', occupation: 'Elementary School Teachers' },
-  'high school teacher':          { socCode: '252031', occupation: 'Secondary School Teachers' },
-  // Skilled Trades / Other
-  'project manager':              { socCode: '119021', occupation: 'Construction Managers' },
-  'electrician':                  { socCode: '472111', occupation: 'Electricians' },
-  'civil engineer':               { socCode: '172051', occupation: 'Civil Engineers' },
-  'mechanical engineer':          { socCode: '172141', occupation: 'Mechanical Engineers' },
-};
-
-/** Fallback entry used when no SOC match is found. */
-const SOC_FALLBACK = { socCode: '150000', occupation: 'Computer Occupations, All Other' };
 
 // ---------------------------------------------------------------------------
 // BLS Series ID helpers
@@ -116,24 +63,6 @@ function todayString() {
   const mm   = String(d.getMonth() + 1).padStart(2, '0');
   const dd   = String(d.getDate()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd}`;
-}
-
-/**
- * Look up the SOC entry for a given job title (case-insensitive, trims whitespace).
- * Falls back to SOC_FALLBACK if not found.
- *
- * @param {string} jobTitle
- * @returns {{ socCode: string, occupation: string }}
- */
-function resolveSoc(jobTitle) {
-  const key = jobTitle.trim().toLowerCase();
-  // Exact match first
-  if (SOC_TABLE[key]) return SOC_TABLE[key];
-  // Partial/contains match — find the first table entry whose key appears in the title
-  for (const [tableKey, entry] of Object.entries(SOC_TABLE)) {
-    if (key.includes(tableKey) || tableKey.includes(key)) return entry;
-  }
-  return SOC_FALLBACK;
 }
 
 /**
@@ -212,15 +141,19 @@ async function incrementLookupCount() {
  * @returns {Promise<{ p10: number|null, p25: number|null, p50: number|null, p75: number|null, p90: number|null, source: 'bls', occupation: string, area: string }|null>}
  *          Returns null on network/parse failure.
  */
-async function fetchFromBls(socCode, occupation) {
+async function fetchFromBls(socCode, occupation, msaResult) {
+  // Build series IDs using area-aware builder if available, else national fallback
+  const buildId = msaResult
+    ? (dt) => buildAreaSeriesId(msaResult, socCode, dt)
+    : (dt) => buildBlsSeriesId(socCode, dt);
+
   const seriesIds = Object.entries(BLS_DATA_TYPES).map(([, dataType]) =>
-    buildBlsSeriesId(socCode, dataType)
+    buildId(dataType)
   );
 
   const body = JSON.stringify({
     seriesid:   seriesIds,
     latest:     true,
-    // registrationkey omitted — callers can inject it via settings if they have one
   });
 
   let response;
@@ -264,12 +197,13 @@ async function fetchFromBls(socCode, occupation) {
   const result = {
     source:     'bls',
     occupation,
-    area:       'National (US)',
-    p10: valueBySeriesId.get(buildBlsSeriesId(socCode, BLS_DATA_TYPES.p10)) ?? null,
-    p25: valueBySeriesId.get(buildBlsSeriesId(socCode, BLS_DATA_TYPES.p25)) ?? null,
-    p50: valueBySeriesId.get(buildBlsSeriesId(socCode, BLS_DATA_TYPES.p50)) ?? null,
-    p75: valueBySeriesId.get(buildBlsSeriesId(socCode, BLS_DATA_TYPES.p75)) ?? null,
-    p90: valueBySeriesId.get(buildBlsSeriesId(socCode, BLS_DATA_TYPES.p90)) ?? null,
+    area:       msaResult?.msaName ?? 'National (US)',
+    areaType:   msaResult?.areaType ?? 'national',
+    p10: valueBySeriesId.get(buildId(BLS_DATA_TYPES.p10)) ?? null,
+    p25: valueBySeriesId.get(buildId(BLS_DATA_TYPES.p25)) ?? null,
+    p50: valueBySeriesId.get(buildId(BLS_DATA_TYPES.p50)) ?? null,
+    p75: valueBySeriesId.get(buildId(BLS_DATA_TYPES.p75)) ?? null,
+    p90: valueBySeriesId.get(buildId(BLS_DATA_TYPES.p90)) ?? null,
   };
 
   // Require at least the median to consider the response valid
@@ -388,6 +322,32 @@ async function fetchFromCareerOneStop(socCode, occupation, location) {
 }
 
 // ---------------------------------------------------------------------------
+// Cost of Living enrichment
+// ---------------------------------------------------------------------------
+
+/**
+ * Enrich salary data with cost-of-living information.
+ * @param {Object} data - Salary percentile data
+ * @param {string} location - Location string from job listing
+ * @returns {Object} Enriched data with col field
+ */
+function enrichWithCOL(data, location) {
+  // Parse city/state from location string
+  const match = location?.match(/([^,]+),\s*([A-Z]{2})/i);
+  const city = match?.[1]?.trim() ?? '';
+  const state = match?.[2]?.trim() ?? '';
+
+  const { rpp, source: colSource } = getRPP(city, state);
+  data.col = {
+    rpp,
+    source: colSource,
+    level: costLevel(rpp),
+    nationalEquivalent: data.p50 ? adjustSalary(data.p50, rpp, 100) : null,
+  };
+  return data;
+}
+
+// ---------------------------------------------------------------------------
 // Main salary fetch orchestrator
 // ---------------------------------------------------------------------------
 
@@ -420,13 +380,26 @@ async function fetchSalaryData(jobTitle, location) {
 
   const { socCode, occupation } = resolveSoc(jobTitle);
 
-  // --- Attempt 1: BLS ---
-  const blsResult = await fetchFromBls(socCode, occupation);
-  if (blsResult) return blsResult;
+  // Resolve location → MSA code for metro-level data
+  const msaResult = resolveMsa(location);
 
-  // --- Attempt 2: CareerOneStop ---
+  // --- Attempt 1: BLS metro area data ---
+  const blsMetro = msaResult.areaType !== 'national'
+    ? await fetchFromBls(socCode, occupation, msaResult)
+    : null;
+  if (blsMetro) {
+    return enrichWithCOL(blsMetro, location);
+  }
+
+  // --- Attempt 2: BLS national fallback ---
+  const blsNational = await fetchFromBls(socCode, occupation, null);
+  if (blsNational) {
+    return enrichWithCOL(blsNational, location);
+  }
+
+  // --- Attempt 3: CareerOneStop ---
   const cosResult = await fetchFromCareerOneStop(socCode, occupation, location);
-  if (cosResult) return cosResult;
+  if (cosResult) return enrichWithCOL(cosResult, location);
 
   // --- Both failed ---
   return {

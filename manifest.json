@@ -22,6 +22,16 @@
       "css": ["src/content/styles.css"]
     },
     {
+      "matches": ["https://www.linkedin.com/jobs/*"],
+      "js": ["src/content/linkedin.js"],
+      "css": ["src/content/styles.css"]
+    },
+    {
+      "matches": ["https://www.glassdoor.com/*"],
+      "js": ["src/content/glassdoor.js"],
+      "css": ["src/content/styles.css"]
+    },
+    {
       "matches": ["https://extensionpay.com/*"],
       "js": ["src/shared/ExtPay.js"],
       "run_at": "document_start"
