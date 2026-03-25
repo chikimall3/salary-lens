@@ -1,0 +1,32 @@
+See real salary data on job listings — powered by the Bureau of Labor Statistics.
+
+SalaryLens shows you where any job offer falls in the market, right on the job listing page. No guesswork. No AI estimates. Just official government wage data from the BLS.
+
+HOW IT WORKS
+1. Browse jobs on Indeed, LinkedIn, or Glassdoor
+2. SalaryLens automatically detects the job title and location
+3. Salary percentile data (10th through 90th) appears right on the page
+4. See instantly if the offer is below market, at market, or above
+
+KEY FEATURES
+- Real BLS Data: Percentile wages from the Occupational Employment and Wage Statistics program (1.1M+ establishments surveyed)
+- City-Level Accuracy: Salary data for 100+ US metro areas, not just national averages
+- Market Position Bar: Visual indicator showing exactly where a salary falls in the distribution
+- Cost of Living: See how salaries compare when adjusted for regional price differences
+- Save & Compare: Save multiple offers and compare them side by side
+- Total Compensation Calculator: Factor in base, bonus, equity, 401k match, and benefits
+- CSV Export: Download your saved offers for offline analysis
+- Multi-Site: Works on Indeed, LinkedIn, and Glassdoor
+
+PRIVACY FIRST
+- No account required
+- No data sent to our servers
+- No browsing tracked
+- Everything stored locally on your device
+
+PRICING
+- Free: 3 salary lookups per day
+- Pro Monthly: $3.99/mo — unlimited lookups, offer comparison, TC calculator
+- Pro Lifetime: $14.99 one-time — everything, forever
+
+830+ occupations covered. 100+ metro areas. Official government data. Know your worth.
