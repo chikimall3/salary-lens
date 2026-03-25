@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — SalaryLens</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; max-width: 720px; margin: 40px auto; padding: 0 24px; color: #2d2d2d; line-height: 1.7; }
+    h1 { font-size: 28px; margin-bottom: 8px; }
+    .updated { color: #9e9e9e; font-size: 13px; margin-bottom: 32px; }
+    h2 { font-size: 18px; margin: 28px 0 12px; }
+    p, ul { margin-bottom: 16px; font-size: 15px; }
+    ul { padding-left: 24px; }
+    a { color: #1a73e8; }
+  </style>
+</head>
+<body>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: March 25, 2026</p>
+
+  <h2>Overview</h2>
+  <p>SalaryLens is a browser extension that shows salary data from the Bureau of Labor Statistics (BLS) on job listing websites. We are committed to protecting your privacy.</p>
+
+  <h2>Data We Collect</h2>
+  <p><strong>We collect no personal data.</strong> Specifically:</p>
+  <ul>
+    <li>No user accounts or registration required</li>
+    <li>No browsing history tracked</li>
+    <li>No analytics or telemetry</li>
+    <li>No cookies (except those set by the payment processor for Pro purchases)</li>
+    <li>No data sent to our servers</li>
+  </ul>
+
+  <h2>Data Stored Locally</h2>
+  <p>SalaryLens stores the following data locally on your device using Chrome's built-in storage API:</p>
+  <ul>
+    <li>Saved job offers (job title, company, location, salary, market data)</li>
+    <li>Extension settings (optional API keys for BLS/CareerOneStop)</li>
+    <li>Daily lookup counter (for free tier rate limiting)</li>
+  </ul>
+  <p>This data never leaves your browser. You can delete it at any time by removing the extension.</p>
+
+  <h2>Third-Party Services</h2>
+  <ul>
+    <li><strong>Bureau of Labor Statistics API</strong> — We send job occupation codes and area codes to the BLS public API to retrieve salary data. No personally identifiable information is included in these requests.</li>
+    <li><strong>CareerOneStop API</strong> (optional) — If configured, occupation data requests are sent to the CareerOneStop API. No personal data is transmitted.</li>
+    <li><strong>ExtensionPay / Stripe</strong> — If you purchase SalaryLens Pro, payment is processed by Stripe through ExtensionPay. We do not see or store your credit card information. See <a href="https://stripe.com/privacy">Stripe's Privacy Policy</a>.</li>
+  </ul>
+
+  <h2>Permissions</h2>
+  <p>SalaryLens requests only the minimum permissions needed:</p>
+  <ul>
+    <li><strong>activeTab</strong> — Read the current job listing page to extract job title and location</li>
+    <li><strong>storage</strong> — Save your offers and settings locally</li>
+    <li><strong>Host permissions for API endpoints</strong> — Connect to BLS and CareerOneStop APIs only</li>
+  </ul>
+
+  <h2>Children's Privacy</h2>
+  <p>SalaryLens is not directed at children under 13. We do not knowingly collect information from children.</p>
+
+  <h2>Changes to This Policy</h2>
+  <p>We may update this policy from time to time. Changes will be posted on this page with an updated date.</p>
+
+  <h2>Contact</h2>
+  <p>For privacy questions, contact <a href="mailto:support@salarylens.app">support@salarylens.app</a>.</p>
+</body>
+</html>
