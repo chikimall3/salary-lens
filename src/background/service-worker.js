@@ -151,10 +151,14 @@ async function fetchFromBls(socCode, occupation, msaResult) {
     buildId(dataType)
   );
 
-  const body = JSON.stringify({
-    seriesid:   seriesIds,
-    latest:     true,
-  });
+  // Load BLS API key from settings if available (increases daily limit from 25 to 500)
+  const stored = await chrome.storage.local.get(STORAGE.SETTINGS);
+  const blsApiKey = stored[STORAGE.SETTINGS]?.blsApiKey;
+
+  const bodyObj = { seriesid: seriesIds, latest: true };
+  if (blsApiKey) bodyObj.registrationkey = blsApiKey;
+
+  const body = JSON.stringify(bodyObj);
 
   let response;
   try {
