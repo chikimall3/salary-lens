@@ -57,6 +57,29 @@ body {
   color: #1a73e8;
 }
 
+.status-row + .status-row {
+  margin-top: 4px;
+}
+
+.upgrade-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.upgrade-btn:hover {
+  background: #1557b0;
+}
+
 /* Offers */
 .offers-section h2 {
   font-size: 14px;

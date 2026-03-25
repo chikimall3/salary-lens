@@ -14,16 +14,35 @@ function formatCurrency(value) {
 }
 
 /**
- * Load and display remaining daily lookups.
+ * Load and display user plan status and remaining lookups.
  */
 async function loadStatus() {
-  const stored = await chrome.storage.local.get([STORAGE.LOOKUP_COUNT, STORAGE.LOOKUP_DATE]);
-  const today = new Date().toISOString().slice(0, 10);
-  const count = stored[STORAGE.LOOKUP_DATE] === today ? (stored[STORAGE.LOOKUP_COUNT] ?? 0) : 0;
-  const remaining = FREE_TIER.MAX_LOOKUPS_PER_DAY - count;
+  const upgradeBtn = document.getElementById('upgrade-btn');
+  const planLabel = document.getElementById('plan-label');
+  const lookupsRow = document.getElementById('lookups-row');
+  const lookupsRemaining = document.getElementById('lookups-remaining');
 
-  document.getElementById('lookups-remaining').textContent =
-    `${remaining}/${FREE_TIER.MAX_LOOKUPS_PER_DAY}`;
+  // Check Pro status
+  let isPro = false;
+  try {
+    const user = await chrome.runtime.sendMessage({ type: MSG.GET_USER_STATUS });
+    isPro = user.paid === true;
+  } catch (_) { /* ExtPay unavailable */ }
+
+  if (isPro) {
+    planLabel.textContent = 'Pro';
+    planLabel.style.color = '#28a745';
+    lookupsRemaining.textContent = 'Unlimited';
+    upgradeBtn.style.display = 'none';
+  } else {
+    planLabel.textContent = 'Free';
+    const stored = await chrome.storage.local.get([STORAGE.LOOKUP_COUNT, STORAGE.LOOKUP_DATE]);
+    const today = new Date().toISOString().slice(0, 10);
+    const count = stored[STORAGE.LOOKUP_DATE] === today ? (stored[STORAGE.LOOKUP_COUNT] ?? 0) : 0;
+    const remaining = FREE_TIER.MAX_LOOKUPS_PER_DAY - count;
+    lookupsRemaining.textContent = `${remaining}/${FREE_TIER.MAX_LOOKUPS_PER_DAY}`;
+    upgradeBtn.style.display = 'block';
+  }
 }
 
 /**
@@ -57,7 +76,6 @@ async function loadOffers() {
     </div>
   `).join('');
 
-  // Attach delete handlers
   list.querySelectorAll('.offer-delete').forEach((btn) => {
     btn.addEventListener('click', async (e) => {
       const offerId = e.target.dataset.id;
@@ -86,5 +104,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('options-link').addEventListener('click', (e) => {
     e.preventDefault();
     chrome.runtime.openOptionsPage();
+  });
+
+  document.getElementById('upgrade-btn').addEventListener('click', () => {
+    chrome.runtime.sendMessage({ type: MSG.OPEN_PAYMENT_PAGE });
   });
 });

@@ -9,6 +9,10 @@
  */
 
 import { MSG, STORAGE, FREE_TIER, API } from '../shared/constants.js';
+import ExtPay from '../shared/ExtPay.module.js';
+
+const extpay = ExtPay('salary-lens');
+extpay.startBackground();
 
 // ---------------------------------------------------------------------------
 // SOC Code Lookup Table (~30 common job titles)
@@ -514,22 +518,32 @@ function handleMessage(message, _sender, sendResponse) {
     case MSG.FETCH_SALARY: {
       const { jobTitle, location } = message;
 
-      checkRateLimit().then(async ({ allowed, remaining }) => {
-        if (!allowed) {
-          sendResponse({
-            error:     'daily_limit_reached',
-            message:   `You've used all ${FREE_TIER.MAX_LOOKUPS_PER_DAY} free lookups for today. Upgrade SalaryLens for unlimited lookups.`,
-            remaining: 0,
-          });
-          return;
+      (async () => {
+        // Check if user is Pro (paid) — Pro users skip rate limiting
+        let isPro = false;
+        try {
+          const user = await extpay.getUser();
+          isPro = user.paid === true;
+        } catch (_) { /* ExtPay unavailable — treat as free */ }
+
+        if (!isPro) {
+          const { allowed, remaining } = await checkRateLimit();
+          if (!allowed) {
+            sendResponse({
+              error:     'daily_limit_reached',
+              message:   `You've used all ${FREE_TIER.MAX_LOOKUPS_PER_DAY} free lookups for today. Upgrade SalaryLens for unlimited lookups.`,
+              remaining: 0,
+            });
+            return;
+          }
+          await incrementLookupCount();
+          const data = await fetchSalaryData(jobTitle, location);
+          sendResponse({ ...data, remaining: remaining - 1 });
+        } else {
+          const data = await fetchSalaryData(jobTitle, location);
+          sendResponse({ ...data, remaining: -1 }); // -1 = unlimited
         }
-
-        // Increment before the fetch so concurrent calls can't bypass the limit
-        await incrementLookupCount();
-
-        const data = await fetchSalaryData(jobTitle, location);
-        sendResponse({ ...data, remaining: remaining - 1 });
-      }).catch((err) => {
+      })().catch((err) => {
         console.error('[SalaryLens] FETCH_SALARY error:', err);
         sendResponse({ error: 'An unexpected error occurred. Please try again.' });
       });
@@ -575,6 +589,29 @@ function handleMessage(message, _sender, sendResponse) {
         });
 
       return true;
+    }
+
+    // ------------------------------------------------------------------
+    case MSG.GET_USER_STATUS: {
+      extpay.getUser()
+        .then((user) => sendResponse({
+          paid: user.paid,
+          paidAt: user.paidAt,
+          subscriptionStatus: user.subscriptionStatus,
+        }))
+        .catch((err) => {
+          console.error('[SalaryLens] GET_USER_STATUS error:', err);
+          sendResponse({ paid: false, error: err.message });
+        });
+
+      return true;
+    }
+
+    // ------------------------------------------------------------------
+    case MSG.OPEN_PAYMENT_PAGE: {
+      extpay.openPaymentPage();
+      sendResponse({ success: true });
+      return false;
     }
 
     // ------------------------------------------------------------------

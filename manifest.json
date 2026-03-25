@@ -20,6 +20,11 @@
       "matches": ["https://www.indeed.com/*"],
       "js": ["src/content/indeed.js"],
       "css": ["src/content/styles.css"]
+    },
+    {
+      "matches": ["https://extensionpay.com/*"],
+      "js": ["src/shared/ExtPay.js"],
+      "run_at": "document_start"
     }
   ],
   "action": {
