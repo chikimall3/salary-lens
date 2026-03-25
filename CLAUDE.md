@@ -16,7 +16,7 @@ Helps job seekers understand if an offer is fair by comparing it to market data.
 - **Extension**: Manifest V3, vanilla JS + lightweight UI
 - **Salary Data**: BLS API + CareerOneStop API (free, public, no scraping)
 - **AI**: Claude Sonnet 4.6 API (negotiation scripts only, NOT for salary estimation)
-- **Payments**: ExtensionPay ($29 one-time)
+- **Payments**: ExtensionPay ($3.99/mo or $14.99 lifetime)
 - **Landing Page**: Vercel (static HTML/CSS)
 
 ## Architecture
@@ -33,7 +33,7 @@ options.html/js    → Settings (API keys, preferences)
 
 ## Key Design Decisions
 - DO NOT use AI to estimate salaries (documented bias issues). Always use BLS/CareerOneStop public data.
-- Revenue model is one-time purchase ($29), NOT subscription (churn problem with job seekers).
+- Revenue model: $3.99/month OR $14.99 lifetime. Dual model lets short-term seekers pay less, long-term users get value.
 - Free tier: 3 salary lookups/day. Paid: unlimited + offer comparison + TC calculator.
 - English only. US market only (BLS data is US-specific).
 
