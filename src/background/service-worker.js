@@ -78,6 +78,49 @@ function parseWage(raw) {
 }
 
 // ---------------------------------------------------------------------------
+// BLS Response Cache
+// ---------------------------------------------------------------------------
+
+const CACHE_KEY = 'salary_lens_bls_cache';
+const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days (BLS OEWS data updates annually)
+
+/**
+ * Get cached BLS response for a SOC+area combination.
+ * @param {string} cacheId - Unique key (e.g. "151252|0012420|metro")
+ * @returns {Promise<Object|null>} Cached data or null if miss/expired
+ */
+async function getCachedResult(cacheId) {
+  const stored = await chrome.storage.local.get(CACHE_KEY);
+  const cache = stored[CACHE_KEY] ?? {};
+  const entry = cache[cacheId];
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > CACHE_TTL_MS) return null;
+  return entry.data;
+}
+
+/**
+ * Store BLS response in cache.
+ * @param {string} cacheId
+ * @param {Object} data
+ */
+async function setCachedResult(cacheId, data) {
+  const stored = await chrome.storage.local.get(CACHE_KEY);
+  const cache = stored[CACHE_KEY] ?? {};
+  // Limit cache size to 200 entries to avoid storage bloat
+  const keys = Object.keys(cache);
+  if (keys.length >= 200) {
+    // Remove oldest entry
+    let oldest = keys[0];
+    for (const k of keys) {
+      if (cache[k].timestamp < cache[oldest].timestamp) oldest = k;
+    }
+    delete cache[oldest];
+  }
+  cache[cacheId] = { data, timestamp: Date.now() };
+  await chrome.storage.local.set({ [CACHE_KEY]: cache });
+}
+
+// ---------------------------------------------------------------------------
 // Rate-limit helpers
 // ---------------------------------------------------------------------------
 
@@ -383,27 +426,45 @@ async function fetchSalaryData(jobTitle, location) {
   }
 
   const { socCode, occupation } = resolveSoc(jobTitle);
-
-  // Resolve location → MSA code for metro-level data
   const msaResult = resolveMsa(location);
+
+  // --- Check cache first ---
+  const cacheId = `${socCode}|${msaResult.msaCode}|${msaResult.areaType}`;
+  const cached = await getCachedResult(cacheId);
+  if (cached) {
+    console.log('[SalaryLens] Cache hit:', cacheId);
+    return enrichWithCOL(cached, location);
+  }
 
   // --- Attempt 1: BLS metro area data ---
   const blsMetro = msaResult.areaType !== 'national'
     ? await fetchFromBls(socCode, occupation, msaResult)
     : null;
   if (blsMetro) {
+    await setCachedResult(cacheId, blsMetro);
     return enrichWithCOL(blsMetro, location);
   }
 
   // --- Attempt 2: BLS national fallback ---
+  const nationalCacheId = `${socCode}|0000000|national`;
+  const nationalCached = await getCachedResult(nationalCacheId);
+  if (nationalCached) {
+    console.log('[SalaryLens] National cache hit:', nationalCacheId);
+    return enrichWithCOL(nationalCached, location);
+  }
+
   const blsNational = await fetchFromBls(socCode, occupation, null);
   if (blsNational) {
+    await setCachedResult(nationalCacheId, blsNational);
     return enrichWithCOL(blsNational, location);
   }
 
   // --- Attempt 3: CareerOneStop ---
   const cosResult = await fetchFromCareerOneStop(socCode, occupation, location);
-  if (cosResult) return enrichWithCOL(cosResult, location);
+  if (cosResult) {
+    await setCachedResult(cacheId, cosResult);
+    return enrichWithCOL(cosResult, location);
+  }
 
   // --- Both failed ---
   return {
