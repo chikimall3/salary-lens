@@ -1,4 +1,5 @@
-import * as browser from 'webextension-polyfill';
+// webextension-polyfill removed — using chrome.* APIs directly
+const browser = chrome;
 
 // Sign up at https://extensionpay.com to use this library. AGPLv3 licensed.
 
