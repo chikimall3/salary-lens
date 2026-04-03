@@ -4,7 +4,6 @@
   "version": "0.1.0",
   "description": "See real salary data on job listings. Know if an offer is fair before you apply.",
   "permissions": [
-    "activeTab",
     "storage"
   ],
   "host_permissions": [
